@@ -27,6 +27,16 @@ class ViewController: UIViewController {
         
         // Definir as constraints da label
         setupConstraints()
+        
+        var webservice: FetchMarvelCharactersProtocol = FetchMarvelCharacters()
+        webservice.fetchProfile { result in
+            switch result {
+            case .success(let characters):
+                print("characters -->", characters)
+            case .failure(let error):
+                print("error -->", error)
+            }
+        }
     }
     
     private func setupConstraints() {

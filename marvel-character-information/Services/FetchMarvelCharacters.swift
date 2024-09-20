@@ -12,16 +12,16 @@ enum NetworkError: Error {
     case decodingError
 }
 
-protocol FetchMarvelCharactersProtocol: AnyObject {
+protocol FetchMarvelCharactersType: AnyObject {
     func fetchProfile(
-        completion: @escaping(Result<[CharacterModel], NetworkError>) -> Void
+        completion: @escaping(Result<[MarvelCharacterModel], NetworkError>) -> Void
     )
 }
 
 
-class FetchMarvelCharacters: FetchMarvelCharactersProtocol {
+class FetchMarvelCharacters: FetchMarvelCharactersType {
     
-    func fetchProfile(completion: @escaping (Result<[CharacterModel],NetworkError>) -> Void) {
+    func fetchProfile(completion: @escaping (Result<[MarvelCharacterModel],NetworkError>) -> Void) {
         let publicKey = "82d985ca3d7bab2bcbe92c37f0ca661d"
         let privateKey = "5bd71e01c7582a252ba8cf53e1666d40abd15555"
         let ts = String(Date().timeIntervalSince1970)
@@ -41,9 +41,12 @@ class FetchMarvelCharacters: FetchMarvelCharactersProtocol {
                        let dataObject = jsonObject["data"] as? [String: Any],
                        let results = dataObject["results"] as? [[String: Any]] {
                    
-                        let characters = try JSONDecoder().decode([CharacterModel].self, from: JSONSerialization.data(withJSONObject: results))
+                        let marvelCharacters = try JSONDecoder().decode(
+                            [MarvelCharacterModel].self,
+                            from: JSONSerialization.data(withJSONObject: results)
+                        )
                         
-                        completion(.success(characters))
+                        completion(.success(marvelCharacters))
                         
                     } else {
                         completion(.failure(.decodingError))

@@ -5,7 +5,7 @@
 //  Created by Bruno Oliveira on 19/09/24.
 //
 
-public struct CharacterModel: Codable {
+public struct MarvelCharacterModel: Codable {
     public let id: Int
     public let name: String
     public let description: String

@@ -63,7 +63,11 @@ extension MarvelCharactersViewController: UITableViewDataSource {
         let characters = self.characters[indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacterCardView.characterCardID, for: indexPath) as! CharacterCardView
-        cell.configure(title: characters.name, description: characters.description)
+        cell.configure(
+            title: characters.name,
+            description: characters.description,
+            backgroundImageURL: characters.imageUrl
+        )
         return cell
         
     }

@@ -30,7 +30,7 @@ class CharacterCardView: UITableViewCell {
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 24)
-        label.textColor = .white // Deixar o texto visível sobre o fundo
+        label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -38,11 +38,24 @@ class CharacterCardView: UITableViewCell {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16)
-        label.numberOfLines = 6 // Limite de 6 linhas
-        label.lineBreakMode = .byTruncatingTail // Coloca reticências no fim
-        label.textColor = .white // Deixar o texto visível sobre o fundo
+        label.numberOfLines = 6
+        label.lineBreakMode = .byTruncatingTail
+        label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    private let favoriteButton: UIButton = {
+        let button = UIButton()
+        
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        button.setImage(UIImage(systemName: "heart", withConfiguration: config), for: .normal)
+        button.setImage(UIImage(systemName: "heart.fill", withConfiguration: config), for: .selected)
+        
+        button.tintColor = .white // Coração vazio na cor branca
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     // MARK: - Inicializadores
@@ -54,6 +67,13 @@ class CharacterCardView: UITableViewCell {
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupView()
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        separatorInset = UIEdgeInsets(top: 0, left: bounds.size.width, bottom: 0, right: 0)
+        contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10))
     }
     
     // MARK: - Configuração da View
@@ -71,12 +91,14 @@ class CharacterCardView: UITableViewCell {
         // Adicionar o título e descrição acima do overlay
         contentView.addSubview(titleLabel)
         contentView.addSubview(descriptionLabel)
+        contentView.addSubview(favoriteButton)
         
         setupConstraints()
     }
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
+
             // Constraints para a imagem de fundo
             backgroundImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             backgroundImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
@@ -98,6 +120,10 @@ class CharacterCardView: UITableViewCell {
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             
+            // Constraints para o botão de favorito
+            favoriteButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            favoriteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            
             // Constraints para a descrição
             descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
             descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -106,9 +132,14 @@ class CharacterCardView: UITableViewCell {
         ])
     }
     
+    // Função chamada quando o botão de favorito é clicado
+    @objc private func favoriteButtonTapped() {
+        favoriteButton.isSelected.toggle() // Alterna o estado entre selecionado (preenchido) e não selecionado (vazio)
+    }
+    
     func configure(title: String, description: String, backgroundImageURL: String?) {
         titleLabel.text = title
-        descriptionLabel.text = description
+        descriptionLabel.text = description.isEmpty ? "Sorry no description content" : description
         // Verifica se a URL da imagem é válida e baixa a imagem
         if let urlString = backgroundImageURL, let url = URL(string: urlString) {
             downloadImage(from: url)
@@ -126,3 +157,4 @@ class CharacterCardView: UITableViewCell {
         }.resume()
     }
 }
+

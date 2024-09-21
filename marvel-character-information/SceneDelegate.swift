@@ -14,14 +14,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
-        
-        let viewControllerFactory = MarvelCharactersViewController()
-        
+
+        // Use o MainViewController como o controlador raiz
+        let mainViewController = MainViewController()
+
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = viewControllerFactory
+        window.rootViewController = mainViewController
         self.window = window
         window.makeKeyAndVisible()
-        
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

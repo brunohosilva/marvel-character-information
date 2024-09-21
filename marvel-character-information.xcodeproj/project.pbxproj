@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B647DC122C9F3A0B00205868 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B647DC112C9F3A0700205868 /* MainViewController.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		B606DCD42C9CAA1F006847F2 /* marvel-character-information.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "marvel-character-information.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B647DC112C9F3A0700205868 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -47,6 +52,7 @@
 			children = (
 				B606DCD62C9CAA1F006847F2 /* marvel-character-information */,
 				B606DCD52C9CAA1F006847F2 /* Products */,
+				B647DC112C9F3A0700205868 /* MainViewController.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -132,6 +138,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B647DC122C9F3A0B00205868 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -37,7 +37,15 @@ class MarvelCharactersViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .lightGray
+        view.backgroundColor = .white
+        self.navigationItem.title = "Marvel Characters"
+        
+        // Configura a fonte do título para grandes títulos
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.largeTitleTextAttributes = [
+            NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 30) // Altera o tamanho da fonte
+        ]
+        
         setupView()
         fetchData()
     }
@@ -63,7 +71,8 @@ extension MarvelCharactersViewController {
         tableView.backgroundColor = .clear
         tableView.register(CharacterCardView.self, forCellReuseIdentifier: CharacterCardView.characterCardID)
         tableView.tableFooterView = UIView()
-
+        
+        tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(tableView)
         

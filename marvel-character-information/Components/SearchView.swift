@@ -4,17 +4,17 @@
 //
 //  Created by Bruno Oliveira on 21/09/24.
 //
+
 import UIKit
 
 protocol SearchViewControllerDelegate: AnyObject {
     func didUpdateSearchQuery(_ query: String)
 }
 
-class SearchViewController: UIViewController {
+class SearchViewController: UIViewController, UITextFieldDelegate {
     
     weak var delegate: SearchViewControllerDelegate?
     var searchTextField = UITextField()
-    var searchTimer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,8 +25,7 @@ class SearchViewController: UIViewController {
         searchTextField.placeholder = "Search Marvel characters..."
         searchTextField.borderStyle = .roundedRect
         searchTextField.translatesAutoresizingMaskIntoConstraints = false
-        searchTextField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-        
+        searchTextField.delegate = self // Definindo o delegado
         view.addSubview(searchTextField)
         
         NSLayoutConstraint.activate([
@@ -37,14 +36,13 @@ class SearchViewController: UIViewController {
         ])
     }
     
-    @objc private func textFieldDidChange(_ textField: UITextField) {
-        searchTimer?.invalidate()
+    // Método chamado quando o Return é pressionado
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder() // Fecha o teclado
         
-        searchTimer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(triggerSearchRequest), userInfo: nil, repeats: false)
-    }
-    
-    @objc private func triggerSearchRequest() {
-        guard let query = searchTextField.text, !query.isEmpty else { return }
-        delegate?.didUpdateSearchQuery(query)
+        guard let query = textField.text, !query.isEmpty else { return true }
+        delegate?.didUpdateSearchQuery(query) // Chama a delegate com a query
+        return true
     }
 }
+

@@ -22,8 +22,8 @@ class MarvelCharacterViewModel {
     }
     var onCharactersFetched: (([MarvelCharacterModel]) -> Void)?
     
-    func getMarvelCharacters() {
-        fetchMarvelCharacters.fetchProfile { results in
+    func getMarvelCharacters(nameStartsWith: String?) {
+        fetchMarvelCharacters.fetchProfile(nameStartsWith: nameStartsWith) { results in
             switch results {
             case .success(let marvelCharacters):
                 self.characters = marvelCharacters
@@ -31,5 +31,9 @@ class MarvelCharacterViewModel {
                 print("error")
             }
         }
+    }
+    
+    func searchCharacters(query: String) {
+        self.getMarvelCharacters(nameStartsWith: query)
     }
 }

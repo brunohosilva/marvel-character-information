@@ -38,7 +38,7 @@ class CharacterCardView: UITableViewCell {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16)
-        label.numberOfLines = 6
+        label.numberOfLines = 3
         label.lineBreakMode = .byTruncatingTail
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false

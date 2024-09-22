@@ -7,14 +7,11 @@
 
 import UIKit
 
-class MarvelCharactersViewController: UIViewController {
+class MarvelCharactersViewController: UIViewController, SearchViewControllerDelegate {
     
     let viewModel = MarvelCharacterViewModel(fetchMarvelCharacters: FetchMarvelCharacters())
                                              
     var tableView = UITableView()
-    
-    var isLoaded = false
-    
     var characters: [MarvelCharacterModel] = []
     
     private let activityIndicator: UIActivityIndicatorView = {
@@ -48,7 +45,7 @@ class MarvelCharactersViewController: UIViewController {
         
         setupView()
         fetchData()
-    }
+    }   
 }
 
 extension MarvelCharactersViewController: UITableViewDelegate {
@@ -60,9 +57,27 @@ extension MarvelCharactersViewController: UITableViewDelegate {
 extension MarvelCharactersViewController {
     
     private func setupView() {
+        setupSearchController()
         setupTableView()
         setupActivityIndicator()
     }
+    
+    private func setupSearchController() {
+         let searchVC = SearchViewController()
+         searchVC.delegate = self
+         addChild(searchVC)
+         searchVC.view.translatesAutoresizingMaskIntoConstraints = false
+         view.addSubview(searchVC.view)
+         
+         NSLayoutConstraint.activate([
+             searchVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+             searchVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+             searchVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+             searchVC.view.heightAnchor.constraint(equalToConstant: 60)
+         ])
+         
+         searchVC.didMove(toParent: self)
+     }
     
     private func setupTableView() {
         tableView.delegate = self
@@ -77,7 +92,7 @@ extension MarvelCharactersViewController {
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
@@ -128,12 +143,11 @@ extension MarvelCharactersViewController {
     
     private func fetchData() {
         activityIndicator.startAnimating()
-        viewModel.getMarvelCharacters()
+        viewModel.getMarvelCharacters(nameStartsWith: nil)
         
         viewModel.onCharactersFetched = { [weak self] characters in
             guard let self else { return }
             self.characters = characters
-            self.isLoaded = true
             reloadView()
         }
     }
@@ -142,5 +156,20 @@ extension MarvelCharactersViewController {
         activityIndicator.stopAnimating()
         loadingLabel.isHidden = true
         self.tableView.reloadData()
+    }
+    
+    func didUpdateSearchQuery(_ query: String) {
+        characters.removeAll()
+        tableView.reloadData()
+        activityIndicator.startAnimating()
+        loadingLabel.isHidden = false
+        
+        viewModel.searchCharacters(query: query)
+        
+        viewModel.onCharactersFetched = { [weak self] characters in
+            guard let self = self else { return }
+            self.characters = characters
+            self.reloadView()
+        }
     }
 }

@@ -14,6 +14,7 @@ enum NetworkError: Error {
 
 protocol FetchMarvelCharactersType: AnyObject {
     func fetchProfile(
+        nameStartsWith: String?,
         completion: @escaping(Result<[MarvelCharacterModel], NetworkError>) -> Void
     )
 }
@@ -21,13 +22,22 @@ protocol FetchMarvelCharactersType: AnyObject {
 
 class FetchMarvelCharacters: FetchMarvelCharactersType {
     
-    func fetchProfile(completion: @escaping (Result<[MarvelCharacterModel],NetworkError>) -> Void) {
+    func fetchProfile(nameStartsWith: String?, completion: @escaping (Result<[MarvelCharacterModel],NetworkError>) -> Void) {
         let publicKey = "82d985ca3d7bab2bcbe92c37f0ca661d"
         let privateKey = "5bd71e01c7582a252ba8cf53e1666d40abd15555"
         let ts = String(Date().timeIntervalSince1970)
         let hash = md5("\(ts)\(privateKey)\(publicKey)")
         
-        let url = URL(string: "https://gateway.marvel.com/v1/public/characters?ts=\(ts)&apikey=\(publicKey)&hash=\(hash)")!
+        var urlString = "https://gateway.marvel.com/v1/public/characters?ts=\(ts)&apikey=\(publicKey)&hash=\(hash)"
+        
+        if let nameStartsWith = nameStartsWith, !nameStartsWith.isEmpty {
+            urlString += "&nameStartsWith=\(nameStartsWith)"
+        }
+        
+        guard let url = URL(string: urlString) else {
+            completion(.failure(.serverError))
+            return
+        }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
             DispatchQueue.main.sync {
@@ -40,7 +50,7 @@ class FetchMarvelCharacters: FetchMarvelCharactersType {
                     if let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let dataObject = jsonObject["data"] as? [String: Any],
                        let results = dataObject["results"] as? [[String: Any]] {
-                   
+                        
                         let marvelCharacters = try JSONDecoder().decode(
                             [MarvelCharacterModel].self,
                             from: JSONSerialization.data(withJSONObject: results)
@@ -51,12 +61,12 @@ class FetchMarvelCharacters: FetchMarvelCharactersType {
                     } else {
                         completion(.failure(.decodingError))
                     }
-
+                    
                 } catch {
                     completion(.failure(.decodingError))
                 }
             }
-           
+            
         }.resume()
     }
 }

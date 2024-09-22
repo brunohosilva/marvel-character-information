@@ -10,6 +10,7 @@ import UIKit
 class MarvelCharactersViewController: UIViewController, SearchViewControllerDelegate {
     
     let viewModel = MarvelCharacterViewModel(fetchMarvelCharacters: FetchMarvelCharacters())
+    let favoriteManager = FavoriteManager()
                                              
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
@@ -71,7 +72,7 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
         
         setupView()
         fetchData()
-    }   
+    }
 }
 
 extension MarvelCharactersViewController: UITableViewDelegate {
@@ -201,6 +202,10 @@ extension MarvelCharactersViewController: UITableViewDataSource {
             description: description,
             backgroundImageURL: character.imageUrl
         )
+        
+        cell.onFavoriteButtonTapped = { [weak self] in
+            self?.favoriteManager.addFavorite(character: character)
+        }
         return cell
     }
 }

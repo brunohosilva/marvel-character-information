@@ -11,6 +11,8 @@ class CharacterCardView: UITableViewCell {
     
     static let characterCardID = "characterCardID"
     
+    var onFavoriteButtonTapped: (() -> Void)?
+    
     // MARK: - Propriedades
     private let backgroundImageView: UIImageView = {
         let imageView = UIImageView()
@@ -131,16 +133,18 @@ class CharacterCardView: UITableViewCell {
             descriptionLabel.bottomAnchor.constraint(lessThanOrEqualTo: contentView.bottomAnchor, constant: -16)
         ])
     }
+}
+
+extension CharacterCardView {
     
-    // Função chamada quando o botão de favorito é clicado
     @objc private func favoriteButtonTapped() {
-        favoriteButton.isSelected.toggle() // Alterna o estado entre selecionado (preenchido) e não selecionado (vazio)
+        favoriteButton.isSelected.toggle()
+        onFavoriteButtonTapped?()
     }
     
     func configure(title: String, description: String, backgroundImageURL: String?) {
         titleLabel.text = title
         descriptionLabel.text = description
-        // Verifica se a URL da imagem é válida e baixa a imagem
         if let urlString = backgroundImageURL, let url = URL(string: urlString) {
             downloadImage(from: url)
         }

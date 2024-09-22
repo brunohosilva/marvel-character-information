@@ -139,7 +139,7 @@ class CharacterCardView: UITableViewCell {
     
     func configure(title: String, description: String, backgroundImageURL: String?) {
         titleLabel.text = title
-        descriptionLabel.text = description.isEmpty ? "Sorry no description content" : description
+        descriptionLabel.text = description
         // Verifica se a URL da imagem é válida e baixa a imagem
         if let urlString = backgroundImageURL, let url = URL(string: urlString) {
             downloadImage(from: url)

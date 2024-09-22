@@ -11,17 +11,23 @@ class CharacterDetailsViewController: UIViewController {
 
     private let dismissButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("X", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .black
+        let image = UIImage(systemName: "xmark")
+        button.setImage(image, for: .normal)
+        button.tintColor = .white
         button.layer.cornerRadius = 20
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(dismissButtonTapped), for: .touchUpInside)
         return button
     }()
     
-    private let titleLabel: UILabel = {
+    let titleLabel: UILabel = {
         let label = UILabel()
+        label.text = "Título"
         label.font = UIFont.boldSystemFont(ofSize: 24)
         label.textColor = .white
+        label.numberOfLines = 1
+        label.setContentHuggingPriority(.defaultLow, for: .horizontal)   // Permitir que o título se ajuste
+        label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal) // Evitar que seja comprimido
         return label
     }()
     
@@ -34,10 +40,16 @@ class CharacterDetailsViewController: UIViewController {
     }()
     
     private let favoriteButton: UIButton = {
-        let button = UIButton(type: .system)
-        let image = UIImage(systemName: "heart")
-        button.setImage(image, for: .normal)
-        button.tintColor = .white
+        let button = UIButton()
+        
+        let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        button.setImage(UIImage(systemName: "heart", withConfiguration: config), for: .normal)
+        button.setImage(UIImage(systemName: "heart.fill", withConfiguration: config), for: .selected)
+        
+        button.tintColor = .white // Coração vazio na cor branca
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(favoriteButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -46,6 +58,7 @@ class CharacterDetailsViewController: UIViewController {
         let image = UIImage(systemName: "square.and.arrow.up")
         button.setImage(image, for: .normal)
         button.tintColor = .white
+        button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         return button
     }()
     
@@ -97,7 +110,7 @@ class CharacterDetailsViewController: UIViewController {
     // MARK: - Setup Layout
     private func setupLayout() {
         view.backgroundColor = .white
-        
+
         // Adicionando imagem de fundo
         view.addSubview(backgroundImageView)
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -107,7 +120,7 @@ class CharacterDetailsViewController: UIViewController {
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
+
         // Adicionando o overlay sobre a imagem de fundo
         view.addSubview(overlayView)
         overlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -117,39 +130,50 @@ class CharacterDetailsViewController: UIViewController {
             overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
+
         // Adicionando dismiss button
         view.addSubview(dismissButton)
-        dismissButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             dismissButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
             dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            dismissButton.widthAnchor.constraint(equalToConstant: 40),
-            dismissButton.heightAnchor.constraint(equalToConstant: 40)
+            dismissButton.widthAnchor.constraint(equalToConstant: 20),
+            dismissButton.heightAnchor.constraint(equalToConstant: 20)
         ])
-        
-        // Adicionando título, descrição, e botões de ação
-        let hStack = UIStackView(arrangedSubviews: [titleLabel, favoriteButton, shareButton])
-        hStack.axis = .horizontal
-        hStack.alignment = .center
-        hStack.spacing = 16
-        
-        view.addSubview(hStack)
-        hStack.translatesAutoresizingMaskIntoConstraints = false
+
+        // Adicionando título e botões de ação
+        let buttonStack = UIStackView(arrangedSubviews: [favoriteButton, shareButton])
+        buttonStack.axis = .horizontal
+        buttonStack.alignment = .center
+
+        view.addSubview(titleLabel)
+        view.addSubview(buttonStack)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+
+        // Definindo as constraints para o título e os botões
         NSLayoutConstraint.activate([
-            hStack.topAnchor.constraint(equalTo: dismissButton.bottomAnchor, constant: 20),
-            hStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            hStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            titleLabel.topAnchor.constraint(equalTo: dismissButton.bottomAnchor, constant: 20),
+            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: buttonStack.leadingAnchor, constant: -8),
+
+            buttonStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            buttonStack.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+
+            // Definindo tamanho mínimo dos botões
+            favoriteButton.widthAnchor.constraint(equalToConstant: 40),
+            favoriteButton.heightAnchor.constraint(equalToConstant: 40),
+            shareButton.widthAnchor.constraint(equalToConstant: 40),
+            shareButton.heightAnchor.constraint(equalToConstant: 40)
         ])
-        
+
         view.addSubview(descriptionLabel)
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            descriptionLabel.topAnchor.constraint(equalTo: hStack.bottomAnchor, constant: 10),
+            descriptionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             descriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             descriptionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
-        
+
         // Adicionando indicador de carregamento
         view.addSubview(activityIndicator)
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
@@ -157,6 +181,15 @@ class CharacterDetailsViewController: UIViewController {
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
+    }
+    
+    // Função chamada quando o botão de favorito é clicado
+    @objc private func favoriteButtonTapped() {
+        favoriteButton.isSelected.toggle() // Alterna o estado entre selecionado (preenchido) e não selecionado (vazio)
+    }
+    
+    @objc private func dismissButtonTapped() {
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - Load Image

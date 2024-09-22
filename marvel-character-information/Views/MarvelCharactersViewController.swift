@@ -77,10 +77,10 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
 extension MarvelCharactersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let character = characters[indexPath.row]
-        
+        let description = character.description.isEmpty ? "Sorry no description content" : character.description
         let bottomSheet = CharacterDetailsViewController(
             title: character.name,
-            description: character.description,
+            description: description,
             imageURL: URL(string: character.imageUrl)
         )
         
@@ -192,16 +192,16 @@ extension MarvelCharactersViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let characters = self.characters[indexPath.row]
+        let character = self.characters[indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacterCardView.characterCardID, for: indexPath) as! CharacterCardView
+        let description = character.description.isEmpty ? "Sorry no description content" : character.description
         cell.configure(
-            title: characters.name,
-            description: characters.description,
-            backgroundImageURL: characters.imageUrl
+            title: character.name,
+            description: description,
+            backgroundImageURL: character.imageUrl
         )
         return cell
-        
     }
 }
 

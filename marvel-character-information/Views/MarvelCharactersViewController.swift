@@ -14,6 +14,24 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
     
+    private let emptyListImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "exclamationmark.triangle") // Escolha um ícone apropriado
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = true // Inicialmente escondido
+        return imageView
+    }()
+
+    private let emptyListLabel: UILabel = {
+        let label = UILabel()
+        label.text = "No characters found."
+        label.font = UIFont.systemFont(ofSize: 18)
+        label.textColor = .black
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true // Inicialmente escondido
+        return label
+    }()
+    
     private let activityIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .large) // Usamos o estilo grande como base
         indicator.color = .black
@@ -60,6 +78,24 @@ extension MarvelCharactersViewController {
         setupSearchController()
         setupTableView()
         setupActivityIndicator()
+        setupEmptyListView()
+    }
+    
+    private func setupEmptyListView() {
+        view.addSubview(emptyListImageView)
+        view.addSubview(emptyListLabel)
+
+        // Centralizando o ícone
+        NSLayoutConstraint.activate([
+            emptyListImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyListImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -10),
+            emptyListImageView.widthAnchor.constraint(equalToConstant: 50),
+            emptyListImageView.heightAnchor.constraint(equalToConstant: 50),
+
+            // Colocando o texto abaixo do ícone
+            emptyListLabel.topAnchor.constraint(equalTo: emptyListImageView.bottomAnchor, constant: 8),
+            emptyListLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        ])
     }
     
     private func setupSearchController() {
@@ -155,10 +191,23 @@ extension MarvelCharactersViewController {
     private func reloadView() {
         activityIndicator.stopAnimating()
         loadingLabel.isHidden = true
-        self.tableView.reloadData()
+
+        if characters.isEmpty {
+            emptyListImageView.isHidden = false
+            emptyListLabel.isHidden = false
+            tableView.isHidden = true // Esconde a tabela se a lista estiver vazia
+        } else {
+            emptyListImageView.isHidden = true
+            emptyListLabel.isHidden = true
+            tableView.isHidden = false // Mostra a tabela se houver personagens
+            self.tableView.reloadData()
+        }
     }
     
     func didUpdateSearchQuery(_ query: String) {
+        emptyListImageView.isHidden = true
+        emptyListLabel.isHidden = true
+        
         characters.removeAll()
         tableView.reloadData()
         activityIndicator.startAnimating()

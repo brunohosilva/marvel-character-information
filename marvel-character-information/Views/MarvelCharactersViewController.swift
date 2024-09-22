@@ -14,6 +14,14 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
     
+    private let networkingErroImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "wifi.exclamationmark") // Escolha um ícone apropriado
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isHidden = true // Inicialmente escondido
+        return imageView
+    }()
+    
     private let emptyListImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "exclamationmark.triangle") // Escolha um ícone apropriado
@@ -79,6 +87,19 @@ extension MarvelCharactersViewController {
         setupTableView()
         setupActivityIndicator()
         setupEmptyListView()
+        setupNetworkingErrorView()
+    }
+    
+    private func setupNetworkingErrorView() {
+        view.addSubview(networkingErroImageView)
+
+        // Centralizando o ícone
+        NSLayoutConstraint.activate([
+            networkingErroImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            networkingErroImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -10),
+            networkingErroImageView.widthAnchor.constraint(equalToConstant: 50),
+            networkingErroImageView.heightAnchor.constraint(equalToConstant: 50),
+        ])
     }
     
     private func setupEmptyListView() {
@@ -177,7 +198,15 @@ extension MarvelCharactersViewController: UITableViewDataSource {
 
 extension MarvelCharactersViewController {
     
+    private func showErrorAlert(message: String) {
+        networkingErroImageView.isHidden = false
+        let alert = UIAlertController(title: "Networking Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
     private func fetchData() {
+        networkingErroImageView.isHidden = true
         activityIndicator.startAnimating()
         viewModel.getMarvelCharacters(nameStartsWith: nil)
         
@@ -186,9 +215,17 @@ extension MarvelCharactersViewController {
             self.characters = characters
             reloadView()
         }
+        
+        viewModel.onErrorOccurred = { [weak self] errorMessage in
+            guard let self = self else { return }
+            self.showErrorAlert(message: errorMessage)
+            self.activityIndicator.stopAnimating()
+            self.loadingLabel.isHidden = true
+        }
     }
     
     private func reloadView() {
+        networkingErroImageView.isHidden = true
         activityIndicator.stopAnimating()
         loadingLabel.isHidden = true
 
@@ -205,6 +242,7 @@ extension MarvelCharactersViewController {
     }
     
     func didUpdateSearchQuery(_ query: String) {
+        networkingErroImageView.isHidden = true
         emptyListImageView.isHidden = true
         emptyListLabel.isHidden = true
         
@@ -219,6 +257,13 @@ extension MarvelCharactersViewController {
             guard let self = self else { return }
             self.characters = characters
             self.reloadView()
+        }
+        
+        viewModel.onErrorOccurred = { [weak self] errorMessage in
+            guard let self = self else { return }
+            self.showErrorAlert(message: errorMessage)
+            self.activityIndicator.stopAnimating()
+            self.loadingLabel.isHidden = true
         }
     }
 }

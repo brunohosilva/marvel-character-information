@@ -21,14 +21,15 @@ class MarvelCharacterViewModel {
         }
     }
     var onCharactersFetched: (([MarvelCharacterModel]) -> Void)?
+    var onErrorOccurred: ((String) -> Void)?
     
     func getMarvelCharacters(nameStartsWith: String?) {
         fetchMarvelCharacters.fetchProfile(nameStartsWith: nameStartsWith) { results in
             switch results {
             case .success(let marvelCharacters):
                 self.characters = marvelCharacters
-            case .failure(let error):
-                print("error")
+            case .failure:
+                self.onErrorOccurred?("Check your network connection")
             }
         }
     }

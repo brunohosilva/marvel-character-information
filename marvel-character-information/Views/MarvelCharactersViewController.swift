@@ -76,7 +76,16 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
 
 extension MarvelCharactersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("click")
+        let character = characters[indexPath.row]
+        
+        let bottomSheet = CharacterDetailsViewController(
+            title: character.name,
+            description: character.description,
+            imageURL: URL(string: character.imageUrl)
+        )
+        
+        bottomSheet.modalPresentationStyle = .pageSheet
+        present(bottomSheet, animated: true, completion: nil)
     }
 }
 

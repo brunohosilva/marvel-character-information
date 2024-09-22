@@ -59,6 +59,7 @@ class CharacterDetailsViewController: UIViewController {
         button.setImage(image, for: .normal)
         button.tintColor = .white
         button.setContentHuggingPriority(.defaultHigh, for: .horizontal)
+        button.addTarget(self, action: #selector(shareButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -182,30 +183,39 @@ class CharacterDetailsViewController: UIViewController {
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
+}
+
+extension CharacterDetailsViewController {
     
-    // Função chamada quando o botão de favorito é clicado
     @objc private func favoriteButtonTapped() {
-        favoriteButton.isSelected.toggle() // Alterna o estado entre selecionado (preenchido) e não selecionado (vazio)
+        favoriteButton.isSelected.toggle()
     }
     
     @objc private func dismissButtonTapped() {
         dismiss(animated: true, completion: nil)
     }
     
-    // MARK: - Load Image
+    @objc private func shareButtonTapped() {
+        guard let imageURL = imageURL else {
+            return
+        }
+        let activityViewController = UIActivityViewController(activityItems: [imageURL], applicationActivities: nil)
+        present(activityViewController, animated: true, completion: nil)
+    }
+    
     private func loadImage() {
         guard let url = imageURL else { return }
-        activityIndicator.startAnimating() // Inicia o loading
+        activityIndicator.startAnimating()
         DispatchQueue.global().async {
             if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
                 DispatchQueue.main.async {
                     self.backgroundImageView.image = image
-                    self.overlayView.isHidden = false // Exibe o overlay
-                    self.activityIndicator.stopAnimating() // Para o loading
+                    self.overlayView.isHidden = false
+                    self.activityIndicator.stopAnimating()
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.activityIndicator.stopAnimating() // Para o loading em caso de erro
+                    self.activityIndicator.stopAnimating()
                 }
             }
         }

@@ -7,13 +7,14 @@
 
 import UIKit
 
-class FavoritesCharactersViewController: UIViewController, SearchViewControllerDelegate {
+class FavoritesCharactersViewController: UIViewController {
     
     let viewModel = MarvelCharacterViewModel(fetchMarvelCharacters: FetchMarvelCharacters())
     let favoriteManager = FavoriteManager()
                                              
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
+    var filteredCharacters: [MarvelCharacterModel] = []
     
     private let emptyListImageView: UIImageView = {
         let imageView = UIImageView()
@@ -32,6 +33,8 @@ class FavoritesCharactersViewController: UIViewController, SearchViewControllerD
         label.isHidden = true // Inicialmente escondido
         return label
     }()
+    
+    private var searchComponent: SearchFilterView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -72,7 +75,7 @@ extension FavoritesCharactersViewController: UITableViewDelegate {
 extension FavoritesCharactersViewController {
     
     private func setupView() {
-        setupSearchController()
+        setupSearchComponent()
         setupTableView()
         setupEmptyListView()
     }
@@ -94,21 +97,25 @@ extension FavoritesCharactersViewController {
         ])
     }
     
-    private func setupSearchController() {
-         let searchVC = SearchViewController()
-         searchVC.delegate = self
-         addChild(searchVC)
-         searchVC.view.translatesAutoresizingMaskIntoConstraints = false
-         view.addSubview(searchVC.view)
+    private func setupSearchComponent() {
+         searchComponent = SearchFilterView(data: characters.map { $0.name })
+         guard let searchComponent = searchComponent else { return }
          
+         searchComponent.onFilter = { [weak self] filteredNames in
+             guard let self = self else { return }
+             self.filteredCharacters = self.characters.filter { filteredNames.contains($0.name) }
+             self.reloadView()
+         }
+
+         searchComponent.translatesAutoresizingMaskIntoConstraints = false
+         view.addSubview(searchComponent)
+
          NSLayoutConstraint.activate([
-             searchVC.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-             searchVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-             searchVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-             searchVC.view.heightAnchor.constraint(equalToConstant: 60)
+             searchComponent.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+             searchComponent.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+             searchComponent.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+             searchComponent.heightAnchor.constraint(equalToConstant: 60)
          ])
-         
-         searchVC.didMove(toParent: self)
      }
     
     private func setupTableView() {
@@ -135,16 +142,16 @@ extension FavoritesCharactersViewController {
 extension FavoritesCharactersViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return characters.count
+        return filteredCharacters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        guard indexPath.row < characters.count else {
+        guard indexPath.row < filteredCharacters.count else {
             return UITableViewCell()
         }
         
-        let character = self.characters[indexPath.row]
+        let character = self.filteredCharacters[indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacterCardView.characterCardID, for: indexPath) as! CharacterCardView
         let description = character.description.isEmpty ? "Sorry no description content" : character.description
@@ -158,9 +165,9 @@ extension FavoritesCharactersViewController: UITableViewDataSource {
         
         cell.onFavoriteButtonTapped = { [weak self] in
             self?.favoriteManager.removeFavorite(characterID: character.id)
-            self?.characters.remove(at: indexPath.row)
-            self?.tableView.deleteRows(at: [indexPath], with: .fade)
-            self?.fetchData()
+            self?.characters.removeAll { $0.id == character.id }
+            self?.filteredCharacters.removeAll { $0.id == character.id }
+            self?.reloadView()
             NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
         }
         return cell
@@ -171,6 +178,8 @@ extension FavoritesCharactersViewController {
     
     private func fetchData() {
         characters = favoriteManager.getFavoriteCharacters() // Carrega os favoritos
+        filteredCharacters = characters
+        searchComponent?.data = characters.map { $0.name }
         reloadView()
     }
     
@@ -191,7 +200,4 @@ extension FavoritesCharactersViewController {
         fetchData()
     }
     
-    func didUpdateSearchQuery(_ query: String) {
-
-    }
 }

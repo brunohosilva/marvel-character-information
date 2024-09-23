@@ -14,7 +14,6 @@ class FavoritesCharactersViewController: UIViewController {
                                              
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
-    var filteredCharacters: [MarvelCharacterModel] = []
     
     private let emptyListImageView: UIImageView = {
         let imageView = UIImageView()
@@ -33,8 +32,6 @@ class FavoritesCharactersViewController: UIViewController {
         label.isHidden = true // Inicialmente escondido
         return label
     }()
-    
-    private var searchComponent: SearchFilterView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,7 +72,6 @@ extension FavoritesCharactersViewController: UITableViewDelegate {
 extension FavoritesCharactersViewController {
     
     private func setupView() {
-        setupSearchComponent()
         setupTableView()
         setupEmptyListView()
     }
@@ -97,26 +93,6 @@ extension FavoritesCharactersViewController {
         ])
     }
     
-    private func setupSearchComponent() {
-         searchComponent = SearchFilterView(data: characters.map { $0.name })
-         guard let searchComponent = searchComponent else { return }
-         
-         searchComponent.onFilter = { [weak self] filteredNames in
-             guard let self = self else { return }
-             self.filteredCharacters = self.characters.filter { filteredNames.contains($0.name) }
-             self.reloadView()
-         }
-
-         searchComponent.translatesAutoresizingMaskIntoConstraints = false
-         view.addSubview(searchComponent)
-
-         NSLayoutConstraint.activate([
-             searchComponent.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-             searchComponent.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-             searchComponent.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-             searchComponent.heightAnchor.constraint(equalToConstant: 60)
-         ])
-     }
     
     private func setupTableView() {
         tableView.delegate = self
@@ -142,16 +118,16 @@ extension FavoritesCharactersViewController {
 extension FavoritesCharactersViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredCharacters.count
+        return characters.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        guard indexPath.row < filteredCharacters.count else {
+        guard indexPath.row < characters.count else {
             return UITableViewCell()
         }
         
-        let character = self.filteredCharacters[indexPath.row]
+        let character = self.characters[indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacterCardView.characterCardID, for: indexPath) as! CharacterCardView
         let description = character.description.isEmpty ? "Sorry no description content" : character.description
@@ -165,9 +141,9 @@ extension FavoritesCharactersViewController: UITableViewDataSource {
         
         cell.onFavoriteButtonTapped = { [weak self] in
             self?.favoriteManager.removeFavorite(characterID: character.id)
-            self?.characters.removeAll { $0.id == character.id }
-            self?.filteredCharacters.removeAll { $0.id == character.id }
-            self?.reloadView()
+            self?.characters.remove(at: indexPath.row)
+            self?.tableView.deleteRows(at: [indexPath], with: .fade)
+            self?.fetchData()
             NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
         }
         return cell
@@ -178,8 +154,6 @@ extension FavoritesCharactersViewController {
     
     private func fetchData() {
         characters = favoriteManager.getFavoriteCharacters() // Carrega os favoritos
-        filteredCharacters = characters
-        searchComponent?.data = characters.map { $0.name }
         reloadView()
     }
     
@@ -199,5 +173,4 @@ extension FavoritesCharactersViewController {
     @objc private func favoritesUpdated() {
         fetchData()
     }
-    
 }

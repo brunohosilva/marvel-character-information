@@ -90,11 +90,12 @@ class CharacterDetailsViewController: UIViewController {
     }()
     
     // MARK: - Custom Initializer
-    init(title: String, description: String, imageURL: URL?) {
+    init(title: String, description: String, imageURL: URL?, isFavorite: Bool) {
         super.init(nibName: nil, bundle: nil)
         self.titleLabel.text = title
         self.descriptionLabel.text = description
         self.imageURL = imageURL
+        self.favoriteButton.isSelected = isFavorite
     }
     
     required init?(coder: NSCoder) {

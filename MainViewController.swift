@@ -17,7 +17,7 @@ class MainViewController: UITabBarController {
 
     private func setupViews() {
         let summaryVC = MarvelCharactersViewController()
-        let favorites = FavoritesViewController()
+        let favorites = FavoritesCharactersViewController()
 
         summaryVC.setTabBarImage(imageName: "list.dash.header.rectangle", title: "Summary")
         favorites.setTabBarImage(imageName: "heart.square.fill", title: "Favorites")
@@ -45,11 +45,4 @@ class MainViewController: UITabBarController {
     }
 }
 
-class FavoritesViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemOrange
-        self.title = "Favorites" // Define o título da navigation bar para a tela de favoritos
-    }
-}
 

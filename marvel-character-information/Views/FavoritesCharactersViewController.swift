@@ -1,27 +1,19 @@
 //
-//  MarvelCharactersViewController.swift
+//  FavoritesCharacters.swift
 //  marvel-character-information
 //
-//  Created by Bruno Oliveira on 19/09/24.
+//  Created by Bruno Oliveira on 22/09/24.
 //
 
 import UIKit
 
-class MarvelCharactersViewController: UIViewController, SearchViewControllerDelegate {
+class FavoritesCharactersViewController: UIViewController, SearchViewControllerDelegate {
     
     let viewModel = MarvelCharacterViewModel(fetchMarvelCharacters: FetchMarvelCharacters())
     let favoriteManager = FavoriteManager()
                                              
     var tableView = UITableView()
     var characters: [MarvelCharacterModel] = []
-    
-    private let networkingErroImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "wifi.exclamationmark") // Escolha um ícone apropriado
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.isHidden = true // Inicialmente escondido
-        return imageView
-    }()
     
     private let emptyListImageView: UIImageView = {
         let imageView = UIImageView()
@@ -33,34 +25,18 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
 
     private let emptyListLabel: UILabel = {
         let label = UILabel()
-        label.text = "No characters found."
+        label.text = "You don't have any favorites"
         label.font = UIFont.systemFont(ofSize: 18)
         label.textColor = .black
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isHidden = true // Inicialmente escondido
         return label
     }()
-    
-    private let activityIndicator: UIActivityIndicatorView = {
-        let indicator = UIActivityIndicatorView(style: .large) // Usamos o estilo grande como base
-        indicator.color = .systemBlue
-        indicator.translatesAutoresizingMaskIntoConstraints = false
-        return indicator
-    }()
-    
-    private let loadingLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Loading marvel characters informations..."
-        label.font = UIFont.systemFont(ofSize: 16)
-        label.textColor = .black
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        self.navigationItem.title = "Marvel Characters"
+        self.navigationItem.title = "Favorites Characters"
         
         // Configura a fonte do título para grandes títulos
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -75,7 +51,7 @@ class MarvelCharactersViewController: UIViewController, SearchViewControllerDele
     }
 }
 
-extension MarvelCharactersViewController: UITableViewDelegate {
+extension FavoritesCharactersViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let character = characters[indexPath.row]
         let description = character.description.isEmpty ? "Sorry no description content" : character.description
@@ -93,26 +69,12 @@ extension MarvelCharactersViewController: UITableViewDelegate {
     }
 }
 
-extension MarvelCharactersViewController {
+extension FavoritesCharactersViewController {
     
     private func setupView() {
         setupSearchController()
         setupTableView()
-        setupActivityIndicator()
         setupEmptyListView()
-        setupNetworkingErrorView()
-    }
-    
-    private func setupNetworkingErrorView() {
-        view.addSubview(networkingErroImageView)
-
-        // Centralizando o ícone
-        NSLayoutConstraint.activate([
-            networkingErroImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            networkingErroImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -10),
-            networkingErroImageView.widthAnchor.constraint(equalToConstant: 50),
-            networkingErroImageView.heightAnchor.constraint(equalToConstant: 50),
-        ])
     }
     
     private func setupEmptyListView() {
@@ -168,27 +130,9 @@ extension MarvelCharactersViewController {
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
     }
-    
-    private func setupActivityIndicator() {
-        view.addSubview(loadingLabel)
-        view.addSubview(activityIndicator)
-       
-        
-        // Centralizando o spinner
-        NSLayoutConstraint.activate([
-            activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20) // Um pouco acima do centro
-        ])
-        
-        // Colocando o texto abaixo do spinner
-        NSLayoutConstraint.activate([
-            loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 24),
-            loadingLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        ])
-    }
 }
 
-extension MarvelCharactersViewController: UITableViewDataSource {
+extension FavoritesCharactersViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return characters.count
@@ -196,110 +140,58 @@ extension MarvelCharactersViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        guard indexPath.row < characters.count else {
+            return UITableViewCell()
+        }
+        
         let character = self.characters[indexPath.row]
         
         let cell = tableView.dequeueReusableCell(withIdentifier: CharacterCardView.characterCardID, for: indexPath) as! CharacterCardView
         let description = character.description.isEmpty ? "Sorry no description content" : character.description
-        let isFavorite = favoriteManager.isFavorite(characterID: character.id)
         cell.selectionStyle = .none
         cell.configure(
             title: character.name,
             description: description,
             backgroundImageURL: character.imageUrl,
-            isFavorite: isFavorite
+            isFavorite: true
         )
         
         cell.onFavoriteButtonTapped = { [weak self] in
-            guard let self = self else { return }
-            if self.favoriteManager.isFavorite(characterID: character.id) {
-                self.favoriteManager.removeFavorite(characterID: character.id)
-            } else {
-                self.favoriteManager.addFavorite(character: character)
-            }
+            self?.favoriteManager.removeFavorite(characterID: character.id)
+            self?.characters.remove(at: indexPath.row)
+            self?.tableView.deleteRows(at: [indexPath], with: .fade)
+            self?.fetchData()
             NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
         }
         return cell
     }
 }
 
-extension MarvelCharactersViewController {
-    
-    @objc private func favoritesUpdated() {
-        for (index, character) in characters.enumerated() {
-            let isFavorite = favoriteManager.isFavorite(characterID: character.id)
-            
-            if let cell = tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? CharacterCardView {
-                cell.favoriteButton.isSelected = isFavorite
-            }
-        }
-    }
-    
-    private func showErrorAlert(message: String) {
-        networkingErroImageView.isHidden = false
-        let alert = UIAlertController(title: "Networking Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
+extension FavoritesCharactersViewController {
     
     private func fetchData() {
-        networkingErroImageView.isHidden = true
-        activityIndicator.startAnimating()
-        viewModel.getMarvelCharacters(nameStartsWith: nil)
-        
-        viewModel.onCharactersFetched = { [weak self] characters in
-            guard let self else { return }
-            self.characters = characters
-            reloadView()
-        }
-        
-        viewModel.onErrorOccurred = { [weak self] errorMessage in
-            guard let self = self else { return }
-            self.showErrorAlert(message: errorMessage)
-            self.activityIndicator.stopAnimating()
-            self.loadingLabel.isHidden = true
-        }
+        characters = favoriteManager.getFavoriteCharacters() // Carrega os favoritos
+        reloadView()
     }
     
     private func reloadView() {
-        networkingErroImageView.isHidden = true
-        activityIndicator.stopAnimating()
-        loadingLabel.isHidden = true
-
         if characters.isEmpty {
             emptyListImageView.isHidden = false
             emptyListLabel.isHidden = false
-            tableView.isHidden = true // Esconde a tabela se a lista estiver vazia
+            tableView.isHidden = true
         } else {
             emptyListImageView.isHidden = true
             emptyListLabel.isHidden = true
-            tableView.isHidden = false // Mostra a tabela se houver personagens
+            tableView.isHidden = false
             self.tableView.reloadData()
         }
     }
     
+    @objc private func favoritesUpdated() {
+        fetchData()
+    }
+    
     func didUpdateSearchQuery(_ query: String) {
-        networkingErroImageView.isHidden = true
-        emptyListImageView.isHidden = true
-        emptyListLabel.isHidden = true
-        
-        characters.removeAll()
-        tableView.reloadData()
-        activityIndicator.startAnimating()
-        loadingLabel.isHidden = false
-        
-        viewModel.searchCharacters(query: query)
-        
-        viewModel.onCharactersFetched = { [weak self] characters in
-            guard let self = self else { return }
-            self.characters = characters
-            self.reloadView()
-        }
-        
-        viewModel.onErrorOccurred = { [weak self] errorMessage in
-            guard let self = self else { return }
-            self.showErrorAlert(message: errorMessage)
-            self.activityIndicator.stopAnimating()
-            self.loadingLabel.isHidden = true
-        }
+
     }
 }

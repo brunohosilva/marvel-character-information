@@ -7,6 +7,10 @@
 
 import UIKit
 
+extension Notification.Name {
+    static let favoritesUpdated = Notification.Name("favoritesUpdated")
+}
+
 class FavoriteManager {
     private let favoritesKey = "favoriteCharacters"
 

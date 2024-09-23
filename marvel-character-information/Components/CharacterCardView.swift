@@ -47,7 +47,7 @@ class CharacterCardView: UITableViewCell {
         return label
     }()
     
-    private let favoriteButton: UIButton = {
+    public let favoriteButton: UIButton = {
         let button = UIButton()
         
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
@@ -142,9 +142,11 @@ extension CharacterCardView {
         onFavoriteButtonTapped?()
     }
     
-    func configure(title: String, description: String, backgroundImageURL: String?) {
+    func configure(title: String, description: String, backgroundImageURL: String?, isFavorite: Bool) {
         titleLabel.text = title
         descriptionLabel.text = description
+        favoriteButton.isSelected = isFavorite
+        
         if let urlString = backgroundImageURL, let url = URL(string: urlString) {
             downloadImage(from: url)
         }
